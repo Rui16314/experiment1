@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Round Result</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Round {{ round_number }} Result</h2>
+  <p>Your Bid: {{ user_bid }}</p>
+  <p>Opponent: {{ opponent }}</p>
+  <p>Opponent's Bid: {{ opponent_bid }}</p>
+  <p>Winning Bid: {{ winning_bid }}</p>
+  <p>Price Paid: {{ price_paid }}</p>
+  <p>Winner: {{ winner }}</p>
+  <p>Your Payoff: {{ payoff }}</p>
+  <a href="{{ url_for('round') }}">Next Round</a>
+</body>
+</html>
+
+

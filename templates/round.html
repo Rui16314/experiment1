@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Round {{ round_number }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Round {{ round_number }}</h2>
+  <p>Your valuation: {{ valuation }}</p>
+
+  <form method="POST">
+    <input type="number" name="bid" step="0.01" min="0" max="100" required>
+    <button type="submit">Submit Bid</button>
+  </form>
+
+  {% if experiment in [3, 6] %}
+  <div id="chat">
+    <h3>Chat with your opponent</h3>
+    <ul id="messages"></ul>
+    <input id="chat_input" autocomplete="off">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+    const input = document.getElementById('chat_input');
+    const messages = document.getElementById('messages');
+
+    function sendMessage() {
+      const msg = input.value;
+      if (msg) {
+        socket.emit('chat_message', msg);
+        input.value = '';
+      }
+    }
+
+    socket.on('chat_message', function(msg) {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      messages.appendChild(li);
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

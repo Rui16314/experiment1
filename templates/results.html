@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Final Results</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Final Results</h2>
+  {% for exp, players in results.items() %}
+    <h3>Experiment {{ exp }}</h3>
+    <table>
+      <tr>
+        <th>Player</th>
+        <th>Total Earnings</th>
+      </tr>
+      {% for name, earnings in players.items() %}
+      <tr>
+        <td>{{ name }}</td>
+        <td>{{ earnings }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% endfor %}
+</body>
+</html>
