@@ -58,7 +58,9 @@ def login():
 def round():
     name = session.get('name')
     experiment = session.get('experiment', 1)
-    round_number = session.get('round', 1)
+   
+    round_number = int(session.get('round', 1))
+
 
     if experiment > NUM_EXPERIMENTS:
         return redirect(url_for('results'))
@@ -91,7 +93,8 @@ def round():
         db.collection('results').add({
             'name': name,
             'experiment': experiment,
-            'round': round_number,
+            'round': int(round_number)
+            
             'valuation': valuation,
             'bid': bid,
             'opponent': opponent,
