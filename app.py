@@ -62,6 +62,9 @@ def round():
 
     if experiment > NUM_EXPERIMENTS:
         return redirect(url_for('results'))
+    if 'name' not in session:
+    return redirect(url_for('login'))
+
 
     valuation = generate_valuation()
     session['valuation'] = valuation
@@ -103,13 +106,18 @@ def round():
 
         return redirect(url_for('round_result'))
 
-    return render_template('round.html', round_number=round_number, valuation=valuation)
+    return render_template('round.html',
+                       round_number=round_number,
+                       valuation=valuation,
+                       experiment=experiment)
+
 
 @app.route('/round_result')
 def round_result():
     name = session.get('name')
     experiment = session.get('experiment')
-    round_number = session.get('round')
+    round_number = int(session.get('round', 1))
+
 
     result_ref = db.collection('results') \
         .where('name', '==', name) \
