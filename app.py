@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from flask_socketio import SocketIO, emit
-import sqlite3
+from firebase_setup import db
+from datetime import datetime
 import random
 
 app = Flask(__name__)
@@ -10,31 +11,6 @@ socketio = SocketIO(app)
 # Constants
 NUM_EXPERIMENTS = 6
 ROUNDS_PER_EXPERIMENT = 10
-
-# Database setup
-def init_db():
-    conn = sqlite3.connect('auction.db')
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS results (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            experiment INTEGER,
-            round INTEGER,
-            valuation REAL,
-            bid REAL,
-            opponent TEXT,
-            opponent_bid REAL,
-            winner TEXT,
-            winning_bid REAL,
-            price_paid REAL,
-            payoff REAL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-
-init_db()
 
 # Valuation generator
 def generate_valuation():
@@ -109,17 +85,21 @@ def round():
         winner_name = name if winner == 'player1' else opponent if winner == 'player2' else 'None'
         payoff = payoff1 if winner == 'player1' else payoff2 if winner == 'player2' else 0
 
-        # Store result
-        conn = sqlite3.connect('auction.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO results (name, experiment, round, valuation, bid, opponent, opponent_bid,
-                                 winner, winning_bid, price_paid, payoff)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (name, experiment, round_number, valuation, bid, opponent, opponent_bid,
-              winner_name, winning_bid, price_paid, payoff))
-        conn.commit()
-        conn.close()
+        # Store result in Firebase
+        db.collection('results').add({
+            'name': name,
+            'experiment': experiment,
+            'round': round_number,
+            'valuation': valuation,
+            'bid': bid,
+            'opponent': opponent,
+            'opponent_bid': opponent_bid,
+            'winner': winner_name,
+            'winning_bid': winning_bid,
+            'price_paid': price_paid,
+            'payoff': payoff,
+            'timestamp': datetime.utcnow()
+        })
 
         return redirect(url_for('round_result'))
 
@@ -131,15 +111,14 @@ def round_result():
     experiment = session.get('experiment')
     round_number = session.get('round')
 
-    conn = sqlite3.connect('auction.db')
-    c = conn.cursor()
-    c.execute('''
-        SELECT valuation, bid, opponent, opponent_bid, winner, winning_bid, price_paid, payoff
-        FROM results
-        WHERE name = ? AND experiment = ? AND round = ?
-    ''', (name, experiment, round_number))
-    result = c.fetchone()
-    conn.close()
+    result_ref = db.collection('results') \
+        .where('name', '==', name) \
+        .where('experiment', '==', experiment) \
+        .where('round', '==', round_number) \
+        .limit(1).stream()
+
+    result = next(result_ref, None)
+    data = result.to_dict() if result else {}
 
     session['round'] += 1
     if session['round'] > ROUNDS_PER_EXPERIMENT:
@@ -148,29 +127,37 @@ def round_result():
 
     return render_template('round_result.html',
                            round_number=round_number,
-                           winner=result[4],
-                           winning_bid=result[5],
-                           user_bid=result[1],
-                           price_paid=result[6],
-                           payoff=result[7],
-                           opponent=result[2],
-                           opponent_bid=result[3])
+                           winner=data.get('winner'),
+                           winning_bid=data.get('winning_bid'),
+                           user_bid=data.get('bid'),
+                           price_paid=data.get('price_paid'),
+                           payoff=data.get('payoff'),
+                           opponent=data.get('opponent'),
+                           opponent_bid=data.get('opponent_bid'))
 
 @app.route('/results')
 def results():
-    conn = sqlite3.connect('auction.db')
-    c = conn.cursor()
-    c.execute('SELECT experiment, name, SUM(payoff) FROM results GROUP BY experiment, name')
-    earnings = c.fetchall()
-    conn.close()
+    results = db.collection('results').stream()
+    earnings = {}
 
-    results_dict = {}
-    for exp, name, total in earnings:
-        if exp not in results_dict:
-            results_dict[exp] = {}
-        results_dict[exp][name] = round(total, 2)
+    for doc in results:
+        data = doc.to_dict()
+        exp = data['experiment']
+        name = data['name']
+        payoff = data['payoff']
 
-    return render_template('results.html', results=results_dict)
+        if exp not in earnings:
+            earnings[exp] = {}
+        if name not in earnings[exp]:
+            earnings[exp][name] = 0
+        earnings[exp][name] += payoff
+
+    # Round values
+    for exp in earnings:
+        for name in earnings[exp]:
+            earnings[exp][name] = round(earnings[exp][name], 2)
+
+    return render_template('results.html', results=earnings)
 
 # Live chat
 @socketio.on('chat_message')
