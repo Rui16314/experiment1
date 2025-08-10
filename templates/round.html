@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Round {{ round_number }}</title>
+  <title>Round {{ round_number or 'N/A' }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h2>Round {{ round_number }}</h2>
-  <p>Your valuation: {{ valuation }}</p>
+  <h2>Round {{ round_number or 'N/A' }}</h2>
+  <p>Your valuation: {{ valuation if valuation is not none else 'Unknown' }}</p>
 
   <form method="POST">
     <input type="number" name="bid" step="0.01" min="0" max="100" required>
     <button type="submit">Submit Bid</button>
   </form>
 
-  {% if experiment in [3, 6] %}
+  {% if experiment is defined and experiment in [3, 6] %}
   <div id="chat">
     <h3>Chat with your opponent</h3>
     <ul id="messages"></ul>
@@ -45,3 +45,4 @@
   {% endif %}
 </body>
 </html>
+
