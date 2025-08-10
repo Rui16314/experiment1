@@ -62,8 +62,7 @@ def round():
 
     if experiment > NUM_EXPERIMENTS:
         return redirect(url_for('results'))
-    if 'name' not in session:
-    return redirect(url_for('login'))
+   
 
 
     valuation = generate_valuation()
