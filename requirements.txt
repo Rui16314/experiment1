@@ -1,3 +1,7 @@
 streamlit
 pandas
+Flask
+flask-socketio
+firebase-admin
+gunicorn
 
