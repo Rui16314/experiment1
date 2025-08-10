@@ -1,6 +1,10 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+from firebase_setup import db
+
+# Now you can use db.collection(...)
+
 
 st.set_page_config(page_title="Auction Dashboard", layout="wide")
 
