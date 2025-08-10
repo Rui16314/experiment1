@@ -105,7 +105,7 @@ def round():
 
         return redirect(url_for('round_result'))
 
-    return render_template('round.html',
+ return render_template('round.html',
                        round_number=round_number,
                        valuation=valuation,
                        experiment=experiment)
