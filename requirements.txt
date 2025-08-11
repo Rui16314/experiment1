@@ -1,7 +1,9 @@
-streamlit
-pandas
-Flask
-flask-socketio
-firebase-admin
-gunicorn
+streamlit==1.33.0
+pandas==2.2.2
+Flask==3.0.3
+flask-socketio==5.3.6
+firebase-admin==6.4.0
+gunicorn==22.0.0
+eventlet==0.35.1
+python-dotenv==1.0.1
 
