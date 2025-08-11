@@ -4,9 +4,44 @@
   <meta charset="UTF-8">
   <title>Waiting</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .loader {
+      border: 8px solid #eee;
+      border-top: 8px solid #007BFF;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    p {
+      font-size: 16px;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
   <h2>Waiting for Other Players...</h2>
+  <div class="loader"></div>
+  <p>Hang tight! The next round will begin shortly.</p>
 </body>
 </html>
 
