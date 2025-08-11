@@ -8,22 +8,15 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 socketio = SocketIO(app)
 
-# Constants
 NUM_EXPERIMENTS = 6
 ROUNDS_PER_EXPERIMENT = 10
 
-# Valuation generator
 def generate_valuation():
     return round(random.randint(0, 10000) / 100, 2)
 
-# Bot strategy
 def bot_bid(exp_type, valuation):
-    if exp_type in [1, 2, 3]:  # First-price
-        return round(valuation / 2, 2)
-    else:  # Second-price
-        return valuation
+    return round(valuation / 2, 2) if exp_type in [1, 2, 3] else valuation
 
-# Auction logic
 def resolve_auction(exp_type, v1, b1, v2, b2):
     if b1 > b2:
         winner = 'player1'
@@ -44,7 +37,6 @@ def resolve_auction(exp_type, v1, b1, v2, b2):
         payoff1 = payoff2 = 0
     return winner, winning_bid, price_paid, payoff1, payoff2
 
-# Routes
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -57,7 +49,7 @@ def login():
 @app.route('/round', methods=['GET', 'POST'])
 def play_round():
     name = session.get('name')
-    experiment = session.get('experiment', 1)
+    experiment = int(session.get('experiment', 1))
     round_number = int(session.get('round', 1))
 
     if experiment > NUM_EXPERIMENTS:
@@ -71,12 +63,10 @@ def play_round():
         bid = float(bid) if bid else bot_bid(experiment, valuation)
         session['bid'] = bid
 
-        # Simulate opponent
         opponent = 'Bot'
         opponent_valuation = generate_valuation()
         opponent_bid = bot_bid(experiment, opponent_valuation)
 
-        # Resolve auction
         winner, winning_bid, price_paid, payoff1, payoff2 = resolve_auction(
             experiment, valuation, bid, opponent_valuation, opponent_bid
         )
@@ -84,21 +74,24 @@ def play_round():
         winner_name = name if winner == 'player1' else opponent if winner == 'player2' else 'None'
         payoff = payoff1 if winner == 'player1' else payoff2 if winner == 'player2' else 0
 
-        # Store result in Firebase
-        db.collection('results').add({
-            'name': name,
-            'experiment': experiment,
-            'round': round_number,
-            'valuation': valuation,
-            'bid': bid,
-            'opponent': opponent,
-            'opponent_bid': opponent_bid,
-            'winner': winner_name,
-            'winning_bid': winning_bid,
-            'price_paid': price_paid,
-            'payoff': payoff,
-            'timestamp': datetime.utcnow()
-        })
+        try:
+            db.collection('results').add({
+                'name': name,
+                'experiment': experiment,
+                'round': round_number,
+                'valuation': valuation,
+                'bid': bid,
+                'opponent': opponent,
+                'opponent_bid': opponent_bid,
+                'winner': winner_name,
+                'winning_bid': winning_bid,
+                'price_paid': price_paid,
+                'payoff': payoff,
+                'timestamp': datetime.utcnow()
+            })
+        except Exception as e:
+            print("Error saving to Firebase:", e)
+            return "Internal error saving results", 500
 
         return redirect(url_for('round_result'))
 
@@ -110,7 +103,7 @@ def play_round():
 @app.route('/round_result')
 def round_result():
     name = session.get('name')
-    experiment = session.get('experiment')
+    experiment = int(session.get('experiment', 1))
     round_number = int(session.get('round', 1))
 
     result_ref = db.collection('results') \
@@ -129,13 +122,13 @@ def round_result():
 
     return render_template('round_result.html',
                            round_number=round_number,
-                           winner=data.get('winner'),
-                           winning_bid=data.get('winning_bid'),
-                           user_bid=data.get('bid'),
-                           price_paid=data.get('price_paid'),
-                           payoff=data.get('payoff'),
-                           opponent=data.get('opponent'),
-                           opponent_bid=data.get('opponent_bid'))
+                           winner=data.get('winner', 'N/A'),
+                           winning_bid=data.get('winning_bid', 0),
+                           user_bid=data.get('bid', 0),
+                           price_paid=data.get('price_paid', 0),
+                           payoff=data.get('payoff', 0),
+                           opponent=data.get('opponent', 'Bot'),
+                           opponent_bid=data.get('opponent_bid', 0))
 
 @app.route('/results')
 def results():
@@ -144,12 +137,13 @@ def results():
 
     for doc in results:
         data = doc.to_dict()
-        exp = data['experiment']
-        name = data['name']
-        payoff = data['payoff']
+        exp = data.get('experiment')
+        name = data.get('name')
+        payoff = data.get('payoff', 0)
 
-        earnings.setdefault(exp, {}).setdefault(name, 0)
-        earnings[exp][name] += payoff
+        if exp and name:
+            earnings.setdefault(exp, {}).setdefault(name, 0)
+            earnings[exp][name] += payoff
 
     for exp in earnings:
         for name in earnings[exp]:
@@ -157,13 +151,11 @@ def results():
 
     return render_template('results.html', results=earnings)
 
-# Live chat
 @socketio.on('chat_message')
 def handle_chat_message(msg):
     name = session.get('name', 'Anonymous')
     emit('chat_message', f"{name}: {msg}", broadcast=True)
 
-# Run the app
 if __name__ == '__main__':
     socketio.run(app, debug=True)
 
