@@ -93,7 +93,7 @@ def round():
         db.collection('results').add({
             'name': name,
             'experiment': experiment,
-            'round': int(round_number)
+            'round': int(round_number),
             
             'valuation': valuation,
             'bid': bid,
