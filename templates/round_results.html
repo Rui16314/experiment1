@@ -2,20 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Round Result</title>
+  <title>Round {{ round_number }} Result</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      padding: 40px;
+    }
+    h2 {
+      margin-bottom: 30px;
+    }
+    .result-box {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 60%;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .result-box p {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+    .winner {
+      font-weight: bold;
+      color: #007BFF;
+    }
+    .payoff {
+      font-weight: bold;
+      color: {% if payoff > 0 %}green{% elif payoff < 0 %}red{% else %}gray{% endif %};
+    }
+    a.button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #007BFF;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    a.button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
   <h2>Round {{ round_number }} Result</h2>
-  <p>Your Bid: {{ user_bid }}</p>
-  <p>Opponent: {{ opponent }}</p>
-  <p>Opponent's Bid: {{ opponent_bid }}</p>
-  <p>Winning Bid: {{ winning_bid }}</p>
-  <p>Price Paid: {{ price_paid }}</p>
-  <p>Winner: {{ winner }}</p>
-  <p>Your Payoff: {{ payoff }}</p>
-  <a href="{{ url_for('round') }}">Next Round</a>
+  <div class="result-box">
+    <p>Your Bid: {{ user_bid }}</p>
+    <p>Opponent: {{ opponent }}</p>
+    <p>Opponent's Bid: {{ opponent_bid }}</p>
+    <p>Winning Bid: {{ winning_bid }}</p>
+    <p>Price Paid: {{ price_paid }}</p>
+    <p class="winner">Winner: {{ winner }}</p>
+    <p class="payoff">Your Payoff: {{ payoff }}</p>
+  </div>
+  <a href="{{ url_for('round') }}" class="button">Next Round</a>
 </body>
 </html>
+
 
 
