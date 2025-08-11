@@ -51,21 +51,17 @@ def login():
         session['name'] = request.form['name']
         session['experiment'] = 1
         session['round'] = 1
-        return redirect(url_for('round'))
+        return redirect(url_for('play_round'))
     return render_template('login.html')
 
 @app.route('/round', methods=['GET', 'POST'])
-def round():
+def play_round():
     name = session.get('name')
     experiment = session.get('experiment', 1)
-   
     round_number = int(session.get('round', 1))
-
 
     if experiment > NUM_EXPERIMENTS:
         return redirect(url_for('results'))
-   
-
 
     valuation = generate_valuation()
     session['valuation'] = valuation
@@ -85,7 +81,6 @@ def round():
             experiment, valuation, bid, opponent_valuation, opponent_bid
         )
 
-        # Determine actual winner name
         winner_name = name if winner == 'player1' else opponent if winner == 'player2' else 'None'
         payoff = payoff1 if winner == 'player1' else payoff2 if winner == 'player2' else 0
 
@@ -93,8 +88,7 @@ def round():
         db.collection('results').add({
             'name': name,
             'experiment': experiment,
-            'round': int(round_number),
-            
+            'round': round_number,
             'valuation': valuation,
             'bid': bid,
             'opponent': opponent,
@@ -108,18 +102,16 @@ def round():
 
         return redirect(url_for('round_result'))
 
- return render_template('round.html',
-                       round_number=round_number,
-                       valuation=valuation,
-                       experiment=experiment)
-
+    return render_template('round.html',
+                           round_number=round_number,
+                           valuation=valuation,
+                           experiment=experiment)
 
 @app.route('/round_result')
 def round_result():
     name = session.get('name')
     experiment = session.get('experiment')
     round_number = int(session.get('round', 1))
-
 
     result_ref = db.collection('results') \
         .where('name', '==', name) \
@@ -156,13 +148,9 @@ def results():
         name = data['name']
         payoff = data['payoff']
 
-        if exp not in earnings:
-            earnings[exp] = {}
-        if name not in earnings[exp]:
-            earnings[exp][name] = 0
+        earnings.setdefault(exp, {}).setdefault(name, 0)
         earnings[exp][name] += payoff
 
-    # Round values
     for exp in earnings:
         for name in earnings[exp]:
             earnings[exp][name] = round(earnings[exp][name], 2)
@@ -178,3 +166,4 @@ def handle_chat_message(msg):
 # Run the app
 if __name__ == '__main__':
     socketio.run(app, debug=True)
+
