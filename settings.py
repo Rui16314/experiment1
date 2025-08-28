@@ -3,37 +3,37 @@ from os import environ
 SESSION_CONFIGS = [
     dict(
         name='first_price_auction',
-        display_name="First-Price Sealed Bid Auction",
+        display_name="Session 1: First-Price Sealed Bid Auction",
         num_demo_participants=2,
         app_sequence=['first_price_auction'],
     ),
     dict(
         name='repeated_first_price_fixed',
-        display_name="Repeated First-Price Auction",
+        display_name="Session 2: Repeated First-Price Auction",
         num_demo_participants=2,
         app_sequence=['repeated_first_price_fixed'],
     ),
     dict(
         name='first_price_with_chat',
-        display_name="First-Price Auction with Chat",
+        display_name="Session 3: First-Price Auction with Chat",
         num_demo_participants=2,
         app_sequence=['first_price_with_chat'],
     ),
     dict(
         name='second_price_auction',
-        display_name="Second-Price Sealed Bid Auction",
+        display_name="Session 4: Second-Price Sealed Bid Auction",
         num_demo_participants=2,
         app_sequence=['second_price_auction'],
     ),
     dict(
         name='repeated_second_price_fixed',
-        display_name="Repeated Second-Price Auction",
+        display_name="Session 5: Repeated Second-Price Auction",
         num_demo_participants=2,
         app_sequence=['repeated_second_price_fixed'],
     ),
     dict(
         name='second_price_with_chat',
-        display_name="Second-Price Auction with Chat",
+        display_name="Session 6: Second-Price Auction with Chat",
         num_demo_participants=2,
         app_sequence=['second_price_with_chat'],
     ),
@@ -58,7 +58,7 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=1.00, participation_fee=0.00, doc=""
 )
 
-PARTICIPANT_FIELDS = []
+PARTICIPANT_FIELDS = ['gender', 'age', 'race']
 SESSION_FIELDS = []
 
 # ISO-639 code
