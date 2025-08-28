@@ -37,7 +37,7 @@ class Group(BaseGroup):
         bids = [p.bid_amount for p in players]
         self.highest_bid = max(bids)
         
-        # Check for tie
+        # First-price auction rules
         if bids[0] == bids[1]:
             # In case of tie, split the payoff
             for p in players:
