@@ -1,0 +1,57 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+    Results - Round {{ round_number }} of {{ total_rounds }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Auction Results</h5>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Your Information</h6>
+                        <p><strong>Valuation:</strong> {{ player.private_value }}</p>
+                        <p><strong>Your Bid:</strong> {{ player.bid_amount }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Opponent's Information</h6>
+                        <p><strong>Valuation:</strong> {{ opponent_valuation }}</p>
+                        <p><strong>Bid:</strong> {{ opponent_bid }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert {% if is_winner %}alert-success{% else %}alert-danger{% endif %} mt-3">
+            <h6 class="alert-heading">
+                {% if is_winner %}
+                    <i class="fas fa-trophy"></i> You won the auction!
+                {% else %}
+                    <i class="fas fa-times-circle"></i> You did not win the auction.
+                {% endif %}
+            </h6>
+            <p class="mb-0"><strong>Points earned this round:</strong> {{ player.payoff }}</p>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Cumulative Earnings</h6>
+                <p><strong>Total points so far:</strong> {{ cumulative_payoff }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% next_button %}
+
+{% endblock %}
