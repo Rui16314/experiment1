@@ -1,0 +1,47 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+    Revenue Comparison
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Revenue Comparison Across Auction Types</h5>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div id="revenue-chart">
+                    {{ revenue_chart|safe }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">First-Price Auction Results</h6>
+                        <p><strong>Average Revenue:</strong> {{ first_price_avg }}</p>
+                        <p><strong>Total Revenue:</strong> {{ first_price_total }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Second-Price Auction Results</h6>
+                        <p><strong>Average Revenue:</strong> {{ second_price_avg }}</p>
+                        <p><strong>Total Revenue:</strong> {{ second_price_total }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% next_button %}
+
+{% endblock %}
