@@ -1,0 +1,178 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+{% load static %}
+
+{% block title %}
+    Chat - Round {{ round_number }}
+{% endblock %}
+
+{% block styles %}
+    <style>
+        .chat-container {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .own-message {
+            background-color: #d4edda;
+            text-align: right;
+        }
+        .other-message {
+            background-color: #f8d7da;
+        }
+        .message-sender {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .message-content {
+            margin-top: 5px;
+        }
+        #chat-form {
+            display: flex;
+            margin-top: 15px;
+        }
+        #chat-input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .time-remaining {
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Chat with Your Opponent</h5>
+        <p class="card-text">
+            You may communicate with your opponent before submitting your bid. 
+            Feel free to discuss any matter, but please keep your identity confidential.
+        </p>
+        
+        <div class="chat-container" id="chat-messages">
+            {% for msg in chat_messages %}
+                <div class="message {% if msg.player_id == player_id %}own-message{% else %}other-message{% endif %}">
+                    <div class="message-sender">
+                        {% if msg.player_id == player_id %}You{% else %}Opponent{% endif %} (Round {{ msg.round_number }}):
+                    </div>
+                    <div class="message-content">{{ msg.message }}</div>
+                </div>
+            {% empty %}
+                <div class="text-center text-muted">No messages yet. Start the conversation!</div>
+            {% endfor %}
+        </div>
+        
+        <div id="chat-form">
+            <input type="text" class="form-control" id="chat-input" placeholder="Type your message here...">
+            <button type="button" class="btn btn-primary" id="send-button">Send</button>
+        </div>
+        
+        <div class="time-remaining" id="time-remaining">
+            Time remaining: <span id="countdown">60</span> seconds
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-3">
+    <button type="button" class="btn btn-secondary" id="skip-chat">Skip Chat</button>
+    {% next_button %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            // Set up live chat functionality
+            const chatContainer = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const skipButton = document.getElementById('skip-chat');
+            const countdownElement = document.getElementById('countdown');
+            
+            // Countdown timer
+            let timeLeft = 60;
+            const countdown = setInterval(function() {
+                timeLeft--;
+                countdownElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    // Automatically proceed to next page when time is up
+                    document.querySelector('form').submit();
+                }
+            }, 1000);
+            
+            // Connect to live channel
+            liveRecv(function(data) {
+                if (data.type === 'chat_update') {
+                    // Clear existing messages
+                    chatContainer.innerHTML = '';
+                    
+                    // Add new messages
+                    data.messages.forEach(function(msg) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message ' + 
+                            (msg.player_id === {{ player_id }} ? 'own-message' : 'other-message');
+                        
+                        const senderDiv = document.createElement('div');
+                        senderDiv.className = 'message-sender';
+                        senderDiv.textContent = 
+                            (msg.player_id === {{ player_id }} ? 'You' : 'Opponent') + 
+                            ' (Round ' + msg.round_number + '):';
+                        
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'message-content';
+                        contentDiv.textContent = msg.message;
+                        
+                        messageDiv.appendChild(senderDiv);
+                        messageDiv.appendChild(contentDiv);
+                        chatContainer.appendChild(messageDiv);
+                    });
+                    
+                    // Scroll to bottom
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            });
+            
+            // Send message function
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message) {
+                    liveSend({
+                        type: 'chat_message',
+                        message: message
+                    });
+                    chatInput.value = '';
+                }
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            skipButton.addEventListener('click', function() {
+                document.querySelector('form').submit();
+            });
+            
+            // Scroll to bottom initially
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+    </script>
+{% endblock %}
