@@ -9,8 +9,8 @@ class Introduction(Page):
 
     def vars_for_template(self):
         return {
-            'participation_fee': self.session.config.get('participation_fee', 0),
-            'points': 100
+            'session_number': 1,
+            'session_title': 'First-Price Sealed Bid Auction'
         }
 
 
@@ -35,6 +35,9 @@ class Results(Page):
             'is_winner': self.player.is_winner,
             'opponent_bid': self.player.other_player().bid_amount,
             'opponent_valuation': self.player.other_player().private_value,
+            'round_number': self.round_number,
+            'total_rounds': Constants.num_rounds,
+            'cumulative_payoff': self.participant.payoff_plus_participation_fee()
         }
 
 
