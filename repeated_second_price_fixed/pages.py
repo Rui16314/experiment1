@@ -20,6 +20,12 @@ class Bid(Page):
 
     timeout_seconds = 60
 
+    def vars_for_template(self):
+        return {
+            'round_number': self.round_number,
+            'total_rounds': Constants.num_rounds
+        }
+
     def before_next_page(self):
         if self.timeout_happened:
             self.player.bid_amount = 0
@@ -37,7 +43,6 @@ class Results(Page):
             'opponent_valuation': self.player.other_player().private_value,
             'round_number': self.round_number,
             'total_rounds': Constants.num_rounds,
-            'cumulative_payoff': self.participant.payoff_plus_participation_fee()
         }
 
 
