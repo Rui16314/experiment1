@@ -1,0 +1,242 @@
+{% extends "global/Layout.html" %}
+{% load otree static %}
+
+{% block title %}
+    Experiment Results Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="results-dashboard">
+    <h2>Experiment Results Dashboard</h2>
+    
+    <div class="summary-stats">
+        <h3>Summary Statistics</h3>
+        <p>Total rounds: {{ total_rounds }} | Total participants: {{ total_participants }}</p>
+    </div>
+    
+    <!-- Chart 1: Valuation Distribution -->
+    <div class="chart-container">
+        <h3>1. Valuation Distribution (Intervals of 20)</h3>
+        <canvas id="valuationChart" width="400" height="200"></canvas>
+    </div>
+    
+    <!-- Chart 2: Valuation Distribution by Gender -->
+    <div class="chart-container">
+        <h3>2. Valuation Distribution by Gender</h3>
+        <canvas id="genderValuationChart" width="400" height="200"></canvas>
+    </div>
+    
+    <!-- Chart 3: Only Women -->
+    <div class="chart-container">
+        <h3>3. Valuation Distribution (Women Only)</h3>
+        <canvas id="womenValuationChart" width="400" height="200"></canvas>
+    </div>
+    
+    <!-- Chart 4: Only Men -->
+    <div class="chart-container">
+        <h3>4. Valuation Distribution (Men Only)</h3>
+        <canvas id="menValuationChart" width="400" height="200"></canvas>
+    </div>
+    
+    <!-- Chart 5: Average Bid by Gender -->
+    <div class="chart-container">
+        <h3>5. Average Bid by Gender</h3>
+        <canvas id="genderBidChart" width="400" height="200"></canvas>
+    </div>
+    
+    <!-- Chart 6: Average Bid by Age and Race -->
+    <div class="chart-row">
+        <div class="chart-container">
+            <h3>6. Average Bid by Age Group</h3>
+            <canvas id="ageBidChart" width="300" height="200"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Average Bid by Race</h3>
+            <canvas id="raceBidChart" width="300" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Special case: Player with valuation 50 -->
+    <div class="special-case">
+        <h3>Average Bid for Valuation = 50</h3>
+        <p>Average bid across all players with valuation 50: <strong>{{ avg_bid_valuation_50|floatformat:2 }}</strong></p>
+        
+        {% if player_valuation_50_data %}
+        <h4>Your Bids when Valuation was 50:</h4>
+        <ul>
+            {% for data in player_valuation_50_data %}
+            <li>Round {{ data.round_number }}: Bid = {{ data.bid|floatformat:2 }}, Points = {{ data.points|floatformat:2 }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>You never received a valuation of 50.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart 1: Valuation Distribution
+    new Chart(document.getElementById('valuationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ valuation_intervals|safe }},
+            datasets: [{
+                label: 'Number of Participants',
+                data: {{ valuation_counts|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    // Chart 2: Valuation Distribution by Gender
+    const genders = {{ genders|safe }};
+    const genderData = {{ gender_valuation_data|safe }};
+    
+    new Chart(document.getElementById('genderValuationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ valuation_intervals|safe }},
+            datasets: genders.map((gender, index) => ({
+                label: gender,
+                data: genderData[index],
+                backgroundColor: `hsl(${index * 60}, 70%, 50%)`,
+                borderColor: `hsl(${index * 60}, 70%, 30%)`,
+                borderWidth: 1
+            }))
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    // Charts 3 & 4: Women and Men only
+    new Chart(document.getElementById('womenValuationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ valuation_intervals|safe }},
+            datasets: [{
+                label: 'Women',
+                data: {{ women_valuation_counts|safe }},
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    new Chart(document.getElementById('menValuationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ valuation_intervals|safe }},
+            datasets: [{
+                label: 'Men',
+                data: {{ men_valuation_counts|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    // Chart 5: Average Bid by Gender
+    new Chart(document.getElementById('genderBidChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ avg_bid_gender_labels|safe }},
+            datasets: [{
+                label: 'Average Bid',
+                data: {{ avg_bid_gender_values|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    // Chart 6: Average Bid by Age and Race
+    new Chart(document.getElementById('ageBidChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ avg_bid_age_labels|safe }},
+            datasets: [{
+                label: 'Average Bid',
+                data: {{ avg_bid_age_values|safe }},
+                backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    
+    new Chart(document.getElementById('raceBidChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ avg_bid_race_labels|safe }},
+            datasets: [{
+                label: 'Average Bid',
+                data: {{ avg_bid_race_values|safe }},
+                backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+<style>
+.chart-container {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+.chart-row {
+    display: flex;
+    gap: 20px;
+}
+.chart-row .chart-container {
+    flex: 1;
+}
+.special-case {
+    margin: 20px 0;
+    padding: 15px;
+    background: #e8f4f8;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
