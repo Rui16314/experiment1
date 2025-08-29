@@ -76,7 +76,7 @@ ROOMS = [
 ]
 
 ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = environ.get('OTREE_ADMIN_PASSWORD')
+ADMIN_PASSWORD = environ.get('ECON3310Selcuk')
 
 DEMO_PAGE_INTRO_HTML = """
 Welcome to the ECON 3310 Auction Experiment Platform
