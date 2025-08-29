@@ -42,6 +42,7 @@ SESSION_CONFIGS = [
         display_name="Full Experiment (All 6 Sessions)",
         num_demo_participants=2,
         app_sequence=[
+            'Profile',
             'first_price_auction',
             'repeated_first_price_fixed',
             'first_price_with_chat',
@@ -53,18 +54,16 @@ SESSION_CONFIGS = [
     ),
 ]
 
-# if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.00, participation_fee=0.00, doc=""
+    real_world_currency_per_point=1.00, 
+    participation_fee=0.00, 
+    doc=""
 )
 
-PARTICIPANT_FIELDS = ['gender', 'age', 'race']
+PARTICIPANT_FIELDS = ['gender', 'age', 'race', 'major']
 SESSION_FIELDS = []
 
-# ISO-639 code
 LANGUAGE_CODE = 'en'
-
-# e.g. EUR, GBP, CNY, JPY
 REAL_WORLD_CURRENCY_CODE = 'USD'
 USE_POINTS = True
 
@@ -77,7 +76,6 @@ ROOMS = [
 ]
 
 ADMIN_USERNAME = 'admin'
-# for security, best to set admin password in an environment variable
 ADMIN_PASSWORD = environ.get('OTREE_ADMIN_PASSWORD')
 
 DEMO_PAGE_INTRO_HTML = """
