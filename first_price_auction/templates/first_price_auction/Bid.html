@@ -1,0 +1,43 @@
+{% extends "global/Layout.html" %}
+{% load otree static %}
+
+{% block content %}
+<div class="bid-page">
+    <h2>Place Your Bid</h2>
+    
+    <div class="valuation-display">
+        <h3>Your Valuation: {{ player.valuation }}</h3>
+    </div>
+    
+    <div class="bid-form">
+        <p>You have <strong>1 minute</strong> to place your bid between 0 and {{ player.valuation }}</p>
+        
+        <form method="post">
+            {% formfields %}
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Submit Bid</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="timer">
+        <p>Time remaining: <span id="time-remaining">{{ timeout_seconds }}</span> seconds</p>
+    </div>
+</div>
+
+<script>
+    // Timer script
+    let timeLeft = {{ timeout_seconds }};
+    const timerElement = document.getElementById('time-remaining');
+    
+    const timer = setInterval(function() {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            document.forms[0].submit();
+        }
+    }, 1000);
+</script>
+{% endblock %}
