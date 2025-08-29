@@ -2,14 +2,15 @@
 {% load otree %}
 
 {% block title %}
-    Instructions - Session {{ session_number }}
+    Instructions
 {% endblock %}
 
 {% block content %}
 
+{% if session_number == 0 %}
 <div class="card">
     <div class="card-body">
-        <h5 class="card-title">General Instructions</h5>
+        <h5 class="card-title">GENERAL INSTRUCTIONS</h5>
         <p class="card-text">
             Welcome to the ECON 3310 Experiment Platform.
         </p>
@@ -28,18 +29,27 @@
         </p>
     </div>
 </div>
+{% endif %}
 
 <div class="card mt-3">
     <div class="card-body">
-        <h5 class="card-title">Session {{ session_number }}: {{ session_title }}</h5>
+        <h5 class="card-title">SESSION {{ session_number }}: {{ session_title }}</h5>
         <p class="card-text">
             {% if session_number == 1 %}
                 You will play 10 rounds of this game. At the start of each round, you'll be randomly paired with a different participant. 
                 This means your matches will change from round to round, and you'll never know who you'll be paired with in any given round.
-            {% elif session_number == 2 or session_number == 5 %}
+            {% elif session_number == 2 %}
                 You will play 10 rounds of the same game you played in the previous session. The only difference is that you will play all 10 rounds against the same opponent. 
                 So, your opponent will stay the same throughout the rounds.
-            {% elif session_number == 3 or session_number == 6 %}
+            {% elif session_number == 3 %}
+                You will play 10 rounds of the same game you played in the previous session. The only difference is that you will now be able to communicate with your opponent through the chatbox.
+            {% elif session_number == 4 %}
+                You will play 10 rounds of this game. At the start of each round, you'll be randomly paired with a different participant. 
+                This means your matches will change from round to round, and you'll never know who you'll be paired with in any given round.
+            {% elif session_number == 5 %}
+                You will play 10 rounds of the same game you played in the previous session. The only difference is that you will play all 10 rounds against the same opponent. 
+                So, your opponent will stay the same throughout the rounds.
+            {% elif session_number == 6 %}
                 You will play 10 rounds of the same game you played in the previous session. The only difference is that you will now be able to communicate with your opponent through the chatbox.
             {% endif %}
         </p>
