@@ -1,0 +1,19 @@
+{% extends "global/Instructions.html" %}
+
+{% block content %}
+<div class="session-specific">
+    <h2>Session 1: First-Price Sealed Bid Auction</h2>
+    
+    <div class="alert alert-info">
+        <h4>Important Rules for This Session:</h4>
+        <ul>
+            <li>You will be randomly paired with a different opponent each round</li>
+            <li>If you win, your points = Your valuation - Your bid</li>
+            <li>If bids are equal, points = (Your valuation - Your bid) / 2</li>
+            <li>You have 1 minute to place your bid</li>
+        </ul>
+    </div>
+    
+    {{ block.super }}
+</div>
+{% endblock %}
