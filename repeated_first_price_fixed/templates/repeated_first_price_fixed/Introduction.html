@@ -1,0 +1,19 @@
+{% extends "global/Instructions.html" %}
+
+{% block content %}
+<div class="session-specific">
+    <h2>Session 2: Repeated First-Price Auction (Fixed Matching)</h2>
+    
+    <div class="alert alert-info">
+        <h4>Important Rules for This Session:</h4>
+        <ul>
+            <li>You will play all 10 rounds with the same opponent</li>
+            <li>If you win, your points = Your valuation - Your bid</li>
+            <li>If bids are equal, points = (Your valuation - Your bid) / 2</li>
+            <li>You have 1 minute to place your bid each round</li>
+        </ul>
+    </div>
+    
+    {{ block.super }}
+</div>
+{% endblock %}
