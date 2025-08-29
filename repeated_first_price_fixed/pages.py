@@ -1,91 +1,56 @@
-from otree.api import (
-    models, widgets, BaseConstants, BaseSubsession, BaseGroup, BasePlayer,
-    Currency as c, currency_range
-)
-import random
+from otree.api import *
+from .models import *
 
+class Introduction(Page):
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == 1
 
-class Constants(BaseConstants):
-    name_in_url = 'repeated_first_price_fixed'
-    players_per_group = 2
-    num_rounds = 10
-    min_valuation = 0
-    max_valuation = 100
-    step_valuation = 0.01
+    @staticmethod
+    def vars_for_template(player: Player):
+        return {
+            'session_type': 'fixed_matching'
+        }
 
+class Bid(Page):
+    form_model = 'player'
+    form_fields = ['bid']
+    timeout_seconds = C.BID_TIMEOUT
 
-class Subsession(BaseSubsession):
-    def creating_session(self):
-        if self.round_number == 1:
-            self.group_randomly()
-        else:
-            self.group_like_round(1)
-            
-        for player in self.get_players():
-            player.private_value = player.generate_private_value()
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        if timeout_happened:
+            player.bid = -1
 
-
-class Group(BaseGroup):
-    highest_bid = models.CurrencyField()
-    winning_bid = models.CurrencyField()
-
-    def set_payoffs(self):
-        players = self.get_players()
-        bids = [p.bid_amount for p in players]
-        self.highest_bid = max(bids)
+class Results(Page):
+    @staticmethod
+    def vars_for_template(player: Player):
+        opponent = player.get_others_in_group()[0]
         
-        # First-price auction rules
-        if bids[0] == bids[1]:
-            # In case of tie, split the payoff
-            for p in players:
-                if p.bid_amount == self.highest_bid:
-                    p.payoff = (p.private_value - p.bid_amount) / 2
-                    p.is_winner = True
-                else:
-                    p.payoff = 0
-                    p.is_winner = False
-        else:
-            winner = None
-            for p in players:
-                if p.bid_amount == self.highest_bid:
-                    winner = p
-                    break
-            
-            for p in players:
-                if p == winner:
-                    p.payoff = p.private_value - p.bid_amount
-                    p.is_winner = True
-                else:
-                    p.payoff = 0
-                    p.is_winner = False
+        player.opponent_valuation = opponent.valuation
+        player.opponent_bid = opponent.bid
         
-        self.winning_bid = self.highest_bid
+        # First-price auction logic
+        if player.bid == -1:
+            player.is_winner = False
+            player.points = 0
+        elif player.bid > opponent.bid:
+            player.is_winner = True
+            player.points = player.valuation - player.bid
+        elif player.bid == opponent.bid:
+            player.is_winner = True
+            player.points = (player.valuation - player.bid) / 2
+        else:
+            player.is_winner = False
+            player.points = 0
+        
+        return {
+            'is_winner': player.is_winner,
+            'points': player.points,
+            'opponent_valuation': player.opponent_valuation,
+            'opponent_bid': player.opponent_bid,
+            'round_number': player.round_number,
+            'total_rounds': C.NUM_ROUNDS
+        }
 
-
-class Player(BasePlayer):
-    private_value = models.CurrencyField(
-        min=Constants.min_valuation,
-        max=Constants.max_valuation,
-        doc="Private value of the item for this player"
-    )
-    
-    bid_amount = models.CurrencyField(
-        min=0,
-        max=Constants.max_valuation,
-        doc="Amount bid by the player",
-        label="Please enter your bid (0 - 100):"
-    )
-    
-    is_winner = models.BooleanField(
-        initial=False,
-        doc="Indicates whether the player won the auction"
-    )
-
-    def generate_private_value(self):
-        range_size = int((Constants.max_valuation - Constants.min_valuation) / Constants.step_valuation) + 1
-        random_index = random.randint(0, range_size - 1)
-        value = Constants.min_valuation + random_index * Constants.step_valuation
-        return value
-
-    def role(self):
-        return {1: 'Player 1', 2: 'Player 2'}[self.id_in_group]
+page_sequence = [Introduction, Bid, Results]
