@@ -1,44 +1,55 @@
-from otree.api import Currency as c, currency_range
-from ._builtin import Page, WaitPage
-from .models import Constants
-
+from otree.api import *
+from .models import *
 
 class Introduction(Page):
-    def is_displayed(self):
-        return self.round_number == 1
-
-    def vars_for_template(self):
-        return {
-            'session_number': 1,
-            'session_title': 'First-Price Sealed Bid Auction'
-        }
-
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == 1
 
 class Bid(Page):
     form_model = 'player'
-    form_fields = ['bid_amount']
+    form_fields = ['bid']
+    timeout_seconds = C.BID_TIMEOUT
 
-    timeout_seconds = 60
-
-    def before_next_page(self):
-        if self.timeout_happened:
-            self.player.bid_amount = 0
-
-
-class ResultsWaitPage(WaitPage):
-    after_all_players_arrive = 'set_payoffs'
-
-
-class Results(Page):
-    def vars_for_template(self):
+    @staticmethod
+    def vars_for_template(player: Player):
         return {
-            'is_winner': self.player.is_winner,
-            'opponent_bid': self.player.other_player().bid_amount,
-            'opponent_valuation': self.player.other_player().private_value,
-            'round_number': self.round_number,
-            'total_rounds': Constants.num_rounds,
-            'cumulative_payoff': self.participant.payoff_plus_participation_fee()
+            'auction_type': 'first_price'
         }
 
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        if timeout_happened:
+            player.bid = -1  # Mark as timeout
 
-page_sequence = [Introduction, Bid, ResultsWaitPage, Results]
+class Results(Page):
+    @staticmethod
+    def vars_for_template(player: Player):
+        # Get opponent
+        opponent = player.get_others_in_group()[0]
+        
+        player.opponent_valuation = opponent.valuation
+        player.opponent_bid = opponent.bid
+        
+        # First-price auction logic
+        if player.bid == -1:  # Timeout
+            player.is_winner = False
+            player.points = 0
+        elif player.bid > opponent.bid:
+            player.is_winner = True
+            player.points = player.valuation - player.bid
+        elif player.bid == opponent.bid:
+            player.is_winner = True
+            player.points = (player.valuation - player.bid) / 2
+        else:
+            player.is_winner = False
+            player.points = 0
+        
+        return {
+            'is_winner': player.is_winner,
+            'points': player.points,
+            'opponent_valuation': player.opponent_valuation,
+            'opponent_bid': player.opponent_bid
+        }
+
+page_sequence = [Introduction, Bid, Results]
