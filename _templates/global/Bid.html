@@ -1,0 +1,53 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+    Round {{ round_number }} of {{ total_rounds }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Auction Round {{ round_number }}</h5>
+        
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Your Information</h6>
+                <p><strong>Your Valuation:</strong> {{ player.private_value }}</p>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_bid_amount">Please enter your bid (0 - 100):</label>
+            {% formfield player.bid_amount %}
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-clock"></i> Time remaining: <span id="countdown">60</span> seconds
+        </div>
+    </div>
+</div>
+
+{% next_button %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+        let timeLeft = 60;
+        const countdownElement = document.getElementById('countdown');
+        
+        const countdown = setInterval(function() {
+            timeLeft--;
+            countdownElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                document.querySelector('form').submit();
+            }
+        }, 1000);
+    });
+</script>
+{% endblock %}
