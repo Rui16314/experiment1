@@ -1,47 +1,65 @@
-{% extends "global/Page.html" %}
-{% load otree %}
-
-{% block title %}
-    Revenue Comparison
-{% endblock %}
+{% extends "global/Layout.html" %}
+{% load otree static %}
 
 {% block content %}
-
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Revenue Comparison Across Auction Types</h5>
-        
-        <div class="row">
-            <div class="col-md-12">
-                <div id="revenue-chart">
-                    {{ revenue_chart|safe }}
-                </div>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">First-Price Auction Results</h6>
-                        <p><strong>Average Revenue:</strong> {{ first_price_avg }}</p>
-                        <p><strong>Total Revenue:</strong> {{ first_price_total }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Second-Price Auction Results</h6>
-                        <p><strong>Average Revenue:</strong> {{ second_price_avg }}</p>
-                        <p><strong>Total Revenue:</strong> {{ second_price_total }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="revenue-comparison">
+    <h2>Revenue Comparison</h2>
+    
+    <div class="comparison-chart">
+        <canvas id="revenueChart" width="400" height="200"></canvas>
     </div>
+    
+    <div class="stats">
+        <h3>Summary Statistics</h3>
+        <table class="table">
+            <tr>
+                <th>Metric</th>
+                <th>First-Price</th>
+                <th>Second-Price</th>
+            </tr>
+            <tr>
+                <td>Average Revenue</td>
+                <td>{{ first_price_avg }}</td>
+                <td>{{ second_price_avg }}</td>
+            </tr>
+            <tr>
+                <td>Total Revenue</td>
+                <td>{{ first_price_total }}</td>
+                <td>{{ second_price_total }}</td>
+            </tr>
+            <tr>
+                <td>Efficiency</td>
+                <td>{{ first_price_efficiency }}%</td>
+                <td>{{ second_price_efficiency }}%</td>
+            </tr>
+        </table>
+    </div>
+    
+    {% next_button %}
 </div>
 
-{% next_button %}
-
+<script src="{% static 'global/chart.js' %}"></script>
+<script>
+    var ctx = document.getElementById('revenueChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['First-Price', 'Second-Price'],
+            datasets: [{
+                label: 'Average Revenue',
+                data: [{{ first_price_avg }}, {{ second_price_avg }}],
+                backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}
