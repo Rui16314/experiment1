@@ -9,8 +9,6 @@ class Constants(BaseConstants):
     name_in_url = 'first_price_auction'
     players_per_group = 2
     num_rounds = 10
-
-    instructions_template = 'first_price_auction/Instructions.html'
     min_valuation = 0
     max_valuation = 100
     step_valuation = 0.01
@@ -19,11 +17,12 @@ class Constants(BaseConstants):
 class Subsession(BaseSubsession):
     def creating_session(self):
         if self.round_number == 1:
-            # Randomly pair players for the first round
             self.group_randomly()
         else:
-            # For subsequent rounds, reshuffle groups
             self.group_randomly(fixed_id_in_group=False)
+            
+        for player in self.get_players():
+            player.private_value = player.generate_private_value()
 
 
 class Group(BaseGroup):
@@ -35,7 +34,7 @@ class Group(BaseGroup):
         bids = [p.bid_amount for p in players]
         self.highest_bid = max(bids)
         
-        # Check for tie
+        # First-price auction rules
         if bids[0] == bids[1]:
             # In case of tie, split the payoff
             for p in players:
@@ -83,7 +82,6 @@ class Player(BasePlayer):
     )
 
     def generate_private_value(self):
-        # Generate random value between min and max with specified step
         range_size = int((Constants.max_valuation - Constants.min_valuation) / Constants.step_valuation) + 1
         random_index = random.randint(0, range_size - 1)
         value = Constants.min_valuation + random_index * Constants.step_valuation
