@@ -17,13 +17,11 @@ class Introduction(Page):
 
 class ChatPage(Page):
     timeout_seconds = 60
-    form_model = 'player'
     
     def is_displayed(self):
         return self.round_number <= Constants.num_rounds
     
     def vars_for_template(self):
-        # Get chat messages for display
         chat_messages = self.group.get_chat_messages()
         return {
             'chat_messages': chat_messages,
@@ -32,10 +30,8 @@ class ChatPage(Page):
         }
     
     def live_method(self, data):
-        # Handle real-time chat messages
         if data['type'] == 'chat_message':
             self.group.add_chat_message(data['message'], self.player.id_in_group)
-            # Return updated messages to all players in group
             return {
                 0: dict(
                     type='chat_update',
